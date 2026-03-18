@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Happy Birthday, Shal 💕</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sacramento&family=Nunito:wght@300;400;600&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet"/>
+
+  <!--
+  ════════════════════════════════════════════════════════════════
+   PHOTOS  (14 images total)
+  ────────────────────────────────────────────────────────────────
+   Google Drive → Share → "Anyone with the link" → copy FILE_ID
+   URL: https://lh3.googleusercontent.com/d/FILE_ID
+
+   YOUR_FILE_ID_1 … 5   → 5 flip-card photos
+   YOUR_FILE_ID_6        → letter centre photo
+   YOUR_SIDE_L1/L2/L3   → 3 left side cards
+   YOUR_SIDE_R1/R2/R3   → 3 right side cards
+
+  ════════════════════════════════════════════════════════════════
+   VIDEO
+  ────────────────────────────────────────────────────────────────
+   Google Drive → Share → "Anyone with the link" → copy FILE_ID
+   URL: https://drive.google.com/uc?export=download&id=FILE_ID
+   Replace YOUR_VIDEO_FILE_ID in the <video> tag below.
+
+  ════════════════════════════════════════════════════════════════
+   MUSIC
+  ────────────────────────────────────────────────────────────────
+   Same Drive pattern. URL: https://drive.google.com/uc?export=download&id=FILE_ID
+   BIRTHDAY_TUNE_FILE_ID  → plays on page load (loops until card 1 is flipped)
+   SONG_1_FILE_ID … 5     → one per flip-card
+
+   To start a song at a specific moment:
+   Find  audio.currentTime = 0;  and change 0 to seconds (e.g. 62 = 1 min 2 sec).
+
+   SPOTIFY: Download as MP3 via yt1s.com from YouTube, upload to Drive.
+  ════════════════════════════════════════════════════════════════
+  -->
+
+  <!-- ─── AUDIO ─── -->
+  <!--
+    AUDIO A: Song for the card-flip sections.
+    Replace src with: https://drive.google.com/uc?export=download&id=YOUR_FILE_ID
+  -->
+    <!-- Pop/Yayy sound on "Open Your Surprise" button click. Replace src with your Drive URL. -->
+  <audio id="audio-pop">
+    <source src="https://drive.google.com/uc?export=download&id=1hjPAylkYkfGvyj4BSw4mi4E4NQqdYRg3" type="audio/mpeg"/>
+  </audio>
+
+  <!-- Song that plays across all card-flip sections. Replace the src with your Drive URL when ready. -->
+  <audio id="audio-cards" loop>
+    <source src="https://drive.google.com/uc?export=download&id=1hxXNBlJZDVuzh66lgTNSGOCNlV9YObGV" type="audio/mpeg"/>
+  </audio>
+
+  <!-- Song that plays when the letter is opened. Replace the src with your Drive URL when ready. -->
+  <audio id="audio-letter">
+    <source src="https://drive.google.com/uc?export=download&id=1-e56XCHzBWTabWJIryvtuJiKV9vXTmsP" type="audio/mpeg"/>
+  </audio>
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    html.locked, html.locked body { overflow:hidden !important; height:100%; }
+
+    body {
+      font-family:'Nunito',sans-serif;
+      background:#ffd6e7; color:#5a3a4a; overflow-x:hidden;
+      cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ctext y='20' font-size='20'%3E🌸%3C/text%3E%3C/svg%3E"),auto;
+    }
+
+    /* ──── SPLASH ──── */
+    #splash {
+      position:fixed; inset:0; z-index:9999;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      background:radial-gradient(ellipse at center,#fff0f6 0%,#ffd6e7 60%,#e8b4cb 100%);
+      transition:opacity .8s ease,transform .8s ease;
+    }
+    #splash.hide { opacity:0; pointer-events:none; transform:scale(1.05); }
+    #splash h1 {
+      font-family:'Sacramento',cursive; font-size:clamp(3rem,10vw,7rem); color:#c2185b;
+      text-shadow:2px 4px 12px rgba(194,24,91,.25);
+      animation:pulseHeart 1.4s ease-in-out infinite;
+      text-align:center; line-height:1.2; padding:0 1rem;
+    }
+    #splash .tagline { font-size:clamp(1rem,3vw,1.4rem); color:#e91e8c; margin-top:.5rem; letter-spacing:.15em; opacity:.85; }
+    #splash .hearts-row { margin-top:1.5rem; font-size:2rem; animation:floatRow 2s ease-in-out infinite; }
+    #splash button {
+      margin-top:2.5rem; padding:.85rem 2.8rem; border:none; border-radius:50px;
+      background:linear-gradient(135deg,#f48fb1,#c2185b); color:#fff;
+      font-family:'Sacramento',cursive; font-size:1.6rem; cursor:pointer;
+      box-shadow:0 6px 24px rgba(194,24,91,.35); transition:transform .2s,box-shadow .2s;
+    }
+    #splash button:hover { transform:scale(1.07); box-shadow:0 10px 30px rgba(194,24,91,.45); }
+
+    .confetti-piece { position:absolute; border-radius:50%; animation:confettiFall linear infinite; pointer-events:none; }
+    @keyframes confettiFall { 0%{transform:translateY(-20vh) rotate(0);opacity:1} 100%{transform:translateY(110vh) rotate(720deg);opacity:0} }
+    @keyframes pulseHeart   { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+    @keyframes floatRow     { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+    /* ──── FLOATING HEARTS ──── */
+    .floating-heart { position:absolute; pointer-events:none; font-size:1.4rem; opacity:0; animation:floatUp linear infinite; z-index:0; }
+    #bg-hearts { position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:0; }
+    @keyframes floatUp {
+      0%  {transform:translateY(100vh) rotate(0) scale(.5);opacity:.7}
+      100%{transform:translateY(-10vh) rotate(30deg) scale(1.2);opacity:0}
+    }
+
+    /* ──── HERO ──── */
+    #hero {
+      min-height:100vh; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; text-align:center; padding:4rem 2rem;
+      background:linear-gradient(160deg,#ffe0ec 0%,#ffd6e7 50%,#f8bbd0 100%);
+      position:relative; overflow:hidden;
+    }
+    #hero::before {
+      content:''; position:absolute; inset:0;
+      background:radial-gradient(circle at 20% 30%,rgba(255,255,255,.6) 0%,transparent 50%),
+                 radial-gradient(circle at 80% 70%,rgba(255,192,203,.4) 0%,transparent 50%);
+    }
+    #hero h2 { font-family:'Sacramento',cursive; font-size:clamp(3.5rem,11vw,8rem); color:#b5006b; text-shadow:3px 5px 16px rgba(181,0,107,.2); position:relative; z-index:1; }
+    #hero p  { font-size:clamp(1rem,2.5vw,1.35rem); color:#7b2d4f; margin-top:1.2rem; max-width:560px; line-height:1.8; font-style:italic; position:relative; z-index:1; }
+    .hero-emoji { font-size:clamp(3rem,8vw,5rem); animation:floatRow 2.5s ease-in-out infinite; display:block; margin-bottom:1rem; position:relative; z-index:1; }
+
+    /* ──── PHOTO SECTIONS ──── */
+    .color-section { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:5rem 2rem; transition:background .6s ease; position:relative; }
+    .photo-wrapper { display:flex; flex-direction:column; align-items:center; gap:1.5rem; position:relative; }
+    .photo-wrapper.reverse { flex-direction:column-reverse; }
+    @media(min-width:640px){
+      .photo-wrapper         { flex-direction:row; gap:2.5rem; }
+      .photo-wrapper.reverse { flex-direction:row-reverse; }
+    }
+
+    /* ──── FLIP CARD ──── */
+    .flip-card { width:min(340px,88vw); height:min(420px,110vw); perspective:1200px; cursor:pointer; flex-shrink:0; opacity:0; transform:translateY(60px) scale(.95); transition:opacity .7s ease,transform .7s ease; }
+    .flip-card.visible { opacity:1; transform:translateY(0) scale(1); }
+    .flip-inner { position:relative; width:100%; height:100%; transition:transform .75s cubic-bezier(.4,2,.6,1); transform-style:preserve-3d; }
+    .flip-card.flipped .flip-inner { transform:rotateY(180deg); }
+    .flip-front,.flip-back { position:absolute; inset:0; border-radius:24px; backface-visibility:hidden; -webkit-backface-visibility:hidden; overflow:hidden; box-shadow:0 16px 48px rgba(0,0,0,.14); }
+    .flip-front img { width:100%; height:100%; object-fit:cover; display:block; }
+    .flip-front::after { content:attr(data-caption); position:absolute; bottom:0; left:0; right:0; padding:.7rem 1rem; background:rgba(255,255,255,.88); backdrop-filter:blur(4px); font-family:'Sacramento',cursive; font-size:1.4rem; color:#b5006b; text-align:center; }
+    .flip-back { background:#fff; transform:rotateY(180deg); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem 1.5rem; text-align:center; gap:1rem; }
+    .flip-back .back-emoji { font-size:2.5rem; }
+    .flip-back .back-msg { font-family:'Playfair Display',serif; font-style:italic; font-size:clamp(1rem,2.5vw,1.2rem); color:#7b2d4f; line-height:1.7; }
+    .flip-back .back-sig  { font-family:'Sacramento',cursive; font-size:1.8rem; color:#c2185b; }
+
+    /* ════════════════════════════════════════
+       EMOJI HINT — white/light skin tone hands
+       👈🏻 👉🏻 pointing toward the card.
+    ════════════════════════════════════════ */
+    .click-hint {
+      display:flex; align-items:center; gap:.5rem;
+      opacity:0; transition:opacity .5s .4s; pointer-events:none;
+      animation:hintBounce 1.6s ease-in-out infinite;
+    }
+    .click-hint.show { opacity:1; }
+    .arr-desk, .arr-mob { font-size:clamp(1.7rem,4vw,2.1rem); line-height:1; display:inline-block; }
+    @media(min-width:640px){ .arr-mob { display:none; } }
+    @media(max-width:639px){ .arr-desk{ display:none; } }
+
+    .click-hint-label { font-family:'Sacramento',cursive; font-size:clamp(1.1rem,3vw,1.5rem); color:#c2185b; white-space:nowrap; }
+
+    @keyframes hintBounce {
+      0%,100% { transform:translate(0,0); }
+      30%      { transform:translate(5px,-3px); }
+      70%      { transform:translate(-3px,2px); }
+    }
+
+    /* ──── PHOTO CAPTION ──── */
+    .photo-caption { max-width:300px; opacity:0; transform:translateX(-30px); transition:opacity .8s ease .3s,transform .8s ease .3s; }
+    .photo-caption.visible { opacity:1; transform:translateX(0); }
+    .photo-caption h3 { font-family:'Sacramento',cursive; font-size:clamp(2.2rem,6vw,3.2rem); color:#b5006b; line-height:1.2; margin-bottom:.7rem; }
+    .photo-caption p  { font-size:clamp(.9rem,2vw,1.05rem); color:#7b2d4f; line-height:1.8; }
+
+    /* ──── DIVIDER ──── */
+    .divider { text-align:center; font-size:2rem; padding:1.5rem; letter-spacing:.5em; animation:floatRow 2s ease-in-out infinite; }
+
+    /* ════════════════════════════════════════
+       VIDEO SECTION  (before letter)
+    ════════════════════════════════════════ */
+    #video-section {
+      padding:4.5rem 0;
+      background:linear-gradient(150deg,#fff0f6 0%,#fce4ec 45%,#f3e8ff 100%);
+      display:flex; flex-direction:column; align-items:center; gap:1.6rem;
+      position:relative; overflow:hidden;
+    }
+    #video-section::before {
+      content:''; position:absolute; inset:0;
+      background:radial-gradient(circle at 80% 20%,rgba(255,255,255,.55) 0%,transparent 55%);
+      pointer-events:none;
+    }
+    #video-section h2 {
+      font-family:'Sacramento',cursive; font-size:clamp(2.5rem,7vw,4.5rem); color:#b5006b;
+      text-align:center; position:relative; z-index:1; padding:0 1rem;
+    }
+    #video-section .vid-sub {
+      font-family:'Playfair Display',serif; font-style:italic;
+      font-size:clamp(.9rem,2vw,1.05rem); color:#7b2d4f;
+      text-align:center; position:relative; z-index:1; margin-top:-.5rem;
+    }
+
+    /* The video placeholder card */
+    .vid-card {
+      position:relative; z-index:1;
+      width: min(820px, 88vw);       /* generous but not edge-to-edge */
+      background:#fff8fc;
+      border:1.5px solid #f4a0c0;   /* thin soft-pink border */
+      border-radius:20px;
+      overflow:hidden;
+      box-shadow:0 12px 48px rgba(194,24,91,.12);
+    }
+
+    /* 16:9 ratio box */
+    .vid-ratio {
+      position:relative; width:100%;
+      padding-top:56.25%;            /* = 9/16 */
+      background:linear-gradient(135deg,#ffd6e7 0%,#e8d5f5 100%);
+    }
+    .vid-ratio video {
+      position:absolute; inset:0; width:100%; height:100%;
+      object-fit:cover; display:block;
+    }
+
+    /* Placeholder shown until real video loads */
+    .vid-placeholder {
+      position:absolute; inset:0;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:.9rem;
+    }
+    .vid-placeholder .ph-icon { font-size:3.8rem; animation:floatRow 2.5s ease-in-out infinite; }
+    .vid-placeholder p { font-family:'Sacramento',cursive; font-size:clamp(1.5rem,4vw,2rem); color:#b5006b; text-align:center; padding:0 1.5rem; }
+    .vid-placeholder small { font-family:'Nunito',sans-serif; font-size:.78rem; background:rgba(255,255,255,.7); padding:.3rem .8rem; border-radius:20px; color:#7b2d4f; text-align:center; max-width:80%; }
+
+    /* ── Custom video controls bar (overlaid at bottom of video) ── */
+    .vid-controls-bar {
+      position:absolute; bottom:0; left:0; right:0; z-index:10;
+      padding:.55rem .9rem .6rem;
+      background:linear-gradient(to top, rgba(90,10,45,.72) 0%, transparent 100%);
+      display:flex; align-items:center; gap:.6rem;
+      opacity:0; transition:opacity .3s ease;
+    }
+    .vid-ratio:hover .vid-controls-bar,
+    .vid-ratio:focus-within .vid-controls-bar { opacity:1; }
+
+    /* Play/Pause */
+    .vc-play {
+      width:34px; height:34px; border:none; border-radius:50%;
+      background:rgba(255,255,255,.22); color:#fff; font-size:.9rem; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+      backdrop-filter:blur(4px); transition:background .2s;
+    }
+    .vc-play:hover { background:rgba(255,255,255,.38); }
+
+    /* Progress / seek bar */
+    .vc-progress {
+      flex:1; height:4px; border-radius:2px; cursor:pointer;
+      -webkit-appearance:none; appearance:none;
+      background:rgba(255,255,255,.3); outline:none;
+    }
+    .vc-progress::-webkit-slider-thumb {
+      -webkit-appearance:none; appearance:none;
+      width:12px; height:12px; border-radius:50%;
+      background:#f48fb1; cursor:pointer; margin-top:-4px;
+    }
+    .vc-progress::-webkit-slider-runnable-track { height:4px; border-radius:2px; }
+
+    /* Time */
+    .vc-time { font-size:.7rem; color:rgba(255,255,255,.9); white-space:nowrap; font-family:'Nunito',sans-serif; flex-shrink:0; }
+
+    /* Volume */
+    .vc-vol {
+      width:28px; height:28px; border:none; border-radius:50%;
+      background:rgba(255,255,255,.18); color:#fff; font-size:.8rem; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+      transition:background .2s;
+    }
+    .vc-vol:hover { background:rgba(255,255,255,.32); }
+
+    /* Fullscreen */
+    .vc-fs {
+      width:28px; height:28px; border:none; border-radius:6px;
+      background:rgba(255,255,255,.18); color:#fff; font-size:.8rem; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+      transition:background .2s;
+    }
+    .vc-fs:hover { background:rgba(255,255,255,.32); }
+
+    /* Big centre play button (shows when paused, hides on hover of bar) */
+    .vid-big-play {
+      position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      width:64px; height:64px; border:none; border-radius:50%;
+      background:linear-gradient(135deg,#f48fb1,#c2185b);
+      color:#fff; font-size:1.5rem; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 8px 28px rgba(194,24,91,.45);
+      transition:transform .2s, opacity .2s;
+      z-index:9;
+    }
+    .vid-big-play:hover { transform:translate(-50%,-50%) scale(1.1); }
+    .vid-big-play.hidden { opacity:0; pointer-events:none; }
+
+    /* ════════════════════════════════════════
+       LETTER SECTION
+    ════════════════════════════════════════ */
+    #letter-section {
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(160deg,#fce4ec 0%,#f8bbd0 100%);
+      padding:4rem 1rem; position:relative; overflow:visible;
+      contain:layout style;
+    }
+    .letter-scene { display:flex; align-items:center; justify-content:center; gap:clamp(1rem,2.5vw,2.5rem); width:100%; max-width:1200px; }
+    .letter-center { display:flex; flex-direction:column; align-items:center; gap:1rem; flex-shrink:0; }
+
+    /* ════════════════════════════════════════
+       SIDE PHOTO CARDS
+       ✓ All same size (bigger than before)
+       ✓ No overlap — flex column with gap
+       ✓ Zigzag margin offset for random feel
+       ✓ Pop-out animation: scale(0)→scale(1)
+       ✓ Tablet + desktop only
+    ════════════════════════════════════════ */
+    .letter-sides {
+      display:none; /* mobile hidden */
+      flex-direction:column;
+      gap:18px;
+      overflow:visible;
+      flex-shrink:0;
+    }
+    @media(min-width:768px) { .letter-sides { display:flex; } }
+
+    .side-photo-card {
+      background:#fff;
+      border-radius:14px;
+      overflow:hidden;
+      border:3px solid rgba(255,255,255,.95);
+      cursor:pointer;
+      box-shadow:0 8px 30px rgba(194,24,91,.16);
+      /* Start state: popped out from envelope centre */
+      opacity:0;
+      transition:transform .28s cubic-bezier(.25,.46,.45,.94), box-shadow .28s ease;
+    }
+
+    /* ── TABLET (768–1023px) ── */
+    @media(min-width:768px) and (max-width:1023px) {
+      .side-photo-card       { width:165px; }
+      .side-photo-card img   { height:138px; }
+      /* Zigzag: left column offsets */
+      .letter-sides.left  .side-photo-card:nth-child(1) { margin-left:20px;  }
+      .letter-sides.left  .side-photo-card:nth-child(2) { margin-left:0;     }
+      .letter-sides.left  .side-photo-card:nth-child(3) { margin-left:28px;  }
+      /* Zigzag: right column offsets */
+      .letter-sides.right .side-photo-card:nth-child(1) { margin-left:0;     }
+      .letter-sides.right .side-photo-card:nth-child(2) { margin-left:22px;  }
+      .letter-sides.right .side-photo-card:nth-child(3) { margin-left:6px;   }
+    }
+
+    /* ── DESKTOP (1024px+) ── */
+    @media(min-width:1024px) {
+      .side-photo-card       { width:195px; }
+      .side-photo-card img   { height:162px; }
+      .letter-sides.left  .side-photo-card:nth-child(1) { margin-left:24px;  }
+      .letter-sides.left  .side-photo-card:nth-child(2) { margin-left:0;     }
+      .letter-sides.left  .side-photo-card:nth-child(3) { margin-left:30px;  }
+      .letter-sides.right .side-photo-card:nth-child(1) { margin-left:0;     }
+      .letter-sides.right .side-photo-card:nth-child(2) { margin-left:26px;  }
+      .letter-sides.right .side-photo-card:nth-child(3) { margin-left:8px;   }
+    }
+
+/* ── Entry keyframes — left column ── */
+    @keyframes popInLeft1 {
+      0%   { opacity:0; transform:translateX(-90px) translateY(20px) scale(0.25) rotate(-7deg); }
+      55%  { opacity:1; transform:translateX(6px) translateY(-8px) scale(1.1) rotate(-7deg); }
+      75%  { transform:translateX(-3px) translateY(3px) scale(0.96) rotate(-7deg); }
+      90%  { transform:translateX(1px) translateY(-1px) scale(1.02) rotate(-7deg); }
+      100% { opacity:1; transform:translateX(0) translateY(0) scale(1) rotate(-7deg); }
+    }
+    @keyframes popInLeft2 {
+      0%   { opacity:0; transform:translateX(-90px) translateY(20px) scale(0.25) rotate(5deg); }
+      55%  { opacity:1; transform:translateX(6px) translateY(-8px) scale(1.1) rotate(5deg); }
+      75%  { transform:translateX(-3px) translateY(3px) scale(0.96) rotate(5deg); }
+      90%  { transform:translateX(1px) translateY(-1px) scale(1.02) rotate(5deg); }
+      100% { opacity:1; transform:translateX(0) translateY(0) scale(1) rotate(5deg); }
+    }
+    @keyframes popInLeft3 {
+      0%   { opacity:0; transform:translateX(-90px) translateY(20px) scale(0.25) rotate(-3deg); }
+      55%  { opacity:1; transform:translateX(6px) translateY(-8px) scale(1.1) rotate(-3deg); }
+      75%  { transform:translateX(-3px) translateY(3px) scale(0.96) rotate(-3deg); }
+      90%  { transform:translateX(1px) translateY(-1px) scale(1.02) rotate(-3deg); }
+      100% { opacity:1; transform:translateX(0) translateY(0) scale(1) rotate(-3deg); }
+    }
+
+    /* ── Entry keyframes — right column ── */
+    @keyframes popInRight1 {
+      0%   { opacity:0; transform:translateX(90px) translateY(20px) scale(0.25) rotate(7deg); }
+      55%  { opacity:1; transform:translateX(-6px) translateY(-8px) scale(1.1) rotate(7deg); }
+      75%  { transform:translateX(3px) translateY(3px) scale(0.96) rotate(7deg); }
+      90%  { transform:translateX(-1px) translateY(-1px) scale(1.02) rotate(7deg); }
+      100% { opacity:1; transform:translateX(0) translateY(0) scale(1) rotate(7deg); }
+    }
+    @keyframes popInRight2 {
+      0%   { opacity:0; transform:translateX(90px) translateY(20px) scale(0.25) rotate(-5deg); }
+      55%  { opacity:1; transform:translateX(-6px) translateY(-8px) scale(1.1) rotate(-5deg); }
+      75%  { transform:translateX(3px) translateY(3px) scale(0.96) rotate(-5deg); }
+      90%  { transform:translateX(-1px) translateY(-1px) scale(1.02) rotate(-5deg); }
+      100% { opacity:1; transform:translateX(0) translateY(0) scale(1) rotate(-5deg); }
+    }
+    @keyframes popInRight3 {
+      0%   { opacity:0; transform:translateX(90px) translateY(20px) scale(0.25) rotate(3deg); }
+      55%  { opacity:1; transform:translateX(-6px) translateY(-8px) scale(1.1) rotate(3deg); }
+      75%  { transform:translateX(3px) translateY(3px) scale(0.96) rotate(3deg); }
+      90%  { transform:translateX(-1px) translateY(-1px) scale(1.02) rotate(3deg); }
+      100% { opacity:1; transform:translateX(0) translateY(0) scale(1) rotate(3deg); }
+    }
+
+    /* ── Trigger animations when .revealed is added ── */
+    .letter-sides.left.revealed  .side-photo-card:nth-child(1) { animation: popInLeft1  .7s cubic-bezier(.25,.46,.45,.94) .05s both; }
+    .letter-sides.left.revealed  .side-photo-card:nth-child(2) { animation: popInLeft2  .7s cubic-bezier(.25,.46,.45,.94) .22s both; }
+    .letter-sides.left.revealed  .side-photo-card:nth-child(3) { animation: popInLeft3  .7s cubic-bezier(.25,.46,.45,.94) .42s both; }
+    .letter-sides.right.revealed .side-photo-card:nth-child(1) { animation: popInRight1 .7s cubic-bezier(.25,.46,.45,.94) .05s both; }
+    .letter-sides.right.revealed .side-photo-card:nth-child(2) { animation: popInRight2 .7s cubic-bezier(.25,.46,.45,.94) .22s both; }
+    .letter-sides.right.revealed .side-photo-card:nth-child(3) { animation: popInRight3 .7s cubic-bezier(.25,.46,.45,.94) .42s both; }
+
+    /* ── HOVER — instant, no delay ── */
+    .letter-sides.revealed .side-photo-card:hover {
+      transform:translateY(-16px) rotate(0deg) scale(1.08) !important;
+      box-shadow:0 24px 48px rgba(194,24,91,.3);
+      z-index:10;
+    }
+    /* ── TAP ── */
+    .side-photo-card.tapped {
+      transform:translateY(-20px) rotate(0deg) scale(1.12) !important;
+      box-shadow:0 30px 55px rgba(194,24,91,.38) !important;
+      z-index:12 !important;
+    }
+
+    .side-photo-card img { display:block; width:100%; object-fit:cover; }
+    .side-caption { font-family:'Sacramento',cursive; font-size:.95rem; color:#b5006b; text-align:center; padding:.35rem .4rem .5rem; }
+
+    /* ── HEART BURST ── */
+    .burst-heart { position:fixed; pointer-events:none; z-index:9997; animation:heartBurst 1.1s ease-out forwards; }
+    @keyframes heartBurst {
+      0%  {transform:translate(0,0) scale(.3);opacity:1}
+      65% {opacity:1}
+      100%{transform:translate(var(--dx),var(--dy)) scale(1.1);opacity:0}
+    }
+
+    /* ──── ENVELOPE ──── */
+    .letter-envelope { position:relative; width:min(480px,92vw); cursor:pointer; }
+    .env-body { background:linear-gradient(145deg,#fff9fb,#fce4ec); border-radius:12px; border:2px solid #f48fb1; padding:3.5rem 2rem 2rem; position:relative; min-height:280px; display:flex; align-items:flex-end; justify-content:center; box-shadow:0 20px 60px rgba(194,24,91,.25); }
+    .env-flap { position:absolute; top:0; left:0; right:0; height:140px; background:linear-gradient(160deg,#f8bbd0,#f48fb1); border-radius:12px 12px 0 0; clip-path:polygon(0 0,100% 0,50% 60%); transform-origin:top center; transition:transform .7s cubic-bezier(.4,2,.6,1); z-index:2; }
+    .letter-envelope.open .env-flap { transform:rotateX(-160deg); }
+    .ribbon-h,.ribbon-v { position:absolute; background:linear-gradient(90deg,#e91e8c,#f06292); border-radius:4px; transition:transform .5s ease,opacity .4s ease; z-index:3; }
+    .ribbon-h { height:14px; width:100%; top:calc(50% - 7px); left:0; }
+    .ribbon-v { width:14px; height:100%; left:calc(50% - 7px); top:0; }
+    .ribbon-bow { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:2.8rem; z-index:4; transition:transform .5s ease,opacity .4s ease; filter:drop-shadow(0 4px 8px rgba(0,0,0,.2)); }
+    .letter-envelope.open .ribbon-h   { transform:scaleX(0); opacity:0; }
+    .letter-envelope.open .ribbon-v   { transform:scaleY(0); opacity:0; }
+    .letter-envelope.open .ribbon-bow { transform:translate(-50%,-50%) scale(0) rotate(180deg); opacity:0; }
+    .letter-content { opacity:0; transform:translateY(30px); transition:opacity .6s ease .5s,transform .6s ease .5s; text-align:center; width:100%; }
+    .letter-envelope.open .letter-content { opacity:1; transform:translateY(0); }
+    .letter-photo { width:100%; max-height:240px; object-fit:cover; border-radius:12px; margin-bottom:1.2rem; box-shadow:0 8px 24px rgba(0,0,0,.12); }
+    .letter-text  { font-family:'Playfair Display',serif; font-style:italic; font-size:clamp(.95rem,2.2vw,1.1rem); color:#7b2d4f; line-height:1.9; text-align:left; }
+    .letter-sign  { font-family:'Sacramento',cursive; font-size:2.2rem; color:#c2185b; margin-top:1rem; display:block; text-align:right; }
+    .env-hint { text-align:center; font-family:'Sacramento',cursive; font-size:1.5rem; color:#c2185b; margin-top:1.2rem; animation:hintBounce 1.5s ease-in-out infinite; transition:opacity .4s ease; }
+
+    /* ──── CONFETTI BLAST (button click) ──── */
+    .confetti-burst {
+      position:fixed; pointer-events:none; z-index:10000;
+      border-radius:3px;
+      animation:burstFly linear forwards;
+    }
+    @keyframes burstFly {
+      0%   { transform:translate(0,0) rotate(0deg) scale(1);   opacity:1; }
+      70%  { opacity:1; }
+      100% { transform:translate(var(--bx),var(--by)) rotate(var(--br)) scale(.5); opacity:0; }
+    }
+
+    /* ──── FOOTER ──── */
+    footer { background:#fce4ec; text-align:center; padding:2rem 1rem; font-family:'Sacramento',cursive; font-size:1.6rem; color:#c2185b; }
+
+    /* ──── SPARKLES ──── */
+    .sparkle { position:fixed; pointer-events:none; z-index:9998; font-size:1.2rem; animation:sparklePop .8s ease forwards; }
+    @keyframes sparklePop { 0%{opacity:1;transform:scale(0) rotate(0)} 50%{opacity:1;transform:scale(1.5) rotate(180deg)} 100%{opacity:0;transform:scale(0) rotate(360deg)} }
+
+    /* ──── SCROLL CUE ──── */
+    .scroll-cue { position:absolute; bottom:2rem; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:.3rem; opacity:.7; animation:bounceDown 1.5s ease-in-out infinite; }
+    .scroll-cue span { font-family:'Sacramento',cursive; font-size:1.1rem; color:#b5006b; }
+    .scroll-cue svg  { width:24px; height:24px; fill:#b5006b; }
+    @keyframes bounceDown { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
+
+    /* ──── MUSIC TOAST ──── */
+    #music-toast {
+      position:fixed; bottom:1.4rem; right:1.4rem; z-index:8000;
+      background:rgba(255,255,255,.94); backdrop-filter:blur(10px);
+      border:1.5px solid #f48fb1; border-radius:50px; padding:.5rem 1.1rem;
+      font-family:'Nunito',sans-serif; font-size:.85rem; color:#c2185b;
+      display:flex; align-items:center; gap:.45rem;
+      box-shadow:0 4px 18px rgba(194,24,91,.14);
+      opacity:0; transition:opacity .4s ease; pointer-events:none;
+    }
+    /* ──── EMOJI BLAST (card flip) ──── */
+    .emoji-blast {
+      position:fixed; pointer-events:none; z-index:9996;
+      font-size:1.5rem; line-height:1;
+      animation:emojiFly 1s ease-out forwards;
+    }
+    @keyframes emojiFly {
+      0%   { transform:translate(0,0) scale(0.2) rotate(0deg);   opacity:1; }
+      40%  { opacity:1; transform:translate(var(--dx),var(--dy)) scale(1.4) rotate(var(--rot)); }
+      100% { transform:translate(var(--dx2),var(--dy2)) scale(0.6) rotate(var(--rot2)); opacity:0; }
+    }
+
+    #music-toast.show { opacity:1; }
+    #music-toast .note { font-size:1rem; animation:floatRow 1s ease-in-out infinite; }
+  </style>
+</head>
+<body>
+
+<div id="music-toast"><span class="note">🎵</span><span id="toast-text">Playing your birthday song…</span></div>
+
+<!-- ════ SPLASH ════ -->
+<div id="splash">
+  <h1>Happy Birthday,<br>Love 💕</h1>
+  <p class="tagline">✨ A little surprise just for you ✨</p>
+  <div class="hearts-row">💗 💖 💗 💖 💗</div>
+  <button onclick="closeSplash()">Open Your Surprise 🎀</button>
+</div>
+
+<div id="bg-hearts"></div>
+
+<!-- ════ HERO ════ -->
+<section id="hero">
+  <span class="hero-emoji">🎂</span>
+  <h2>Today is all about you</h2>
+  <p>On this beautiful day, I just want you to know how endlessly grateful I am that you're in my life. Scroll down for a little trip through us… 💕</p>
+  <div class="scroll-cue">
+    <span>scroll</span>
+    <svg viewBox="0 0 24 24"><path d="M12 16l-6-6h12z"/></svg>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     PHOTO SECTIONS
+     👈🏻 / 👉🏻 = white-skin pointing hands on desktop
+     👆🏻 / 👇🏻 = on mobile
+════════════════════════════════════════ -->
+
+<!-- SEC 1 — blush pink | normal row: card LEFT, hint RIGHT → 👈🏻 -->
+<section class="color-section" data-bg="#ffd6e7" id="sec1" data-song="audio-song1" data-emojis="😘💕🌸✨💫🌷💗🥰">
+  <div class="photo-wrapper">
+    <div class="flip-card" id="firstCard" onclick="flipCard(this)">
+      <div class="flip-inner">
+        <div class="flip-front" data-caption="The beginning ✨">
+          <!-- ▶ PHOTO 1 — replace with your Google Drive URL -->
+          <img src="https://lh3.googleusercontent.com/d/17bwVW2upr8YxM6vghezEak-qrUWHQkBS" alt="Our photo 1"/>
+        </div>
+        <div class="flip-back">
+          <span class="back-emoji">🌸</span>
+          <p class="back-msg">I still remember the first time I saw you smile. That day felt a little brighter for me. I never knew it would lead us to where we are today.</p>
+          <span class="back-sig">— always yours 💕</span>
+        </div>
+      </div>
+    </div>
+    <span class="click-hint">
+      <span class="arr-desk">👈🏻</span>
+      <span class="arr-mob">👆🏻</span>
+      <span class="click-hint-label">Click on us</span>
+    </span>
+    <div class="photo-caption">
+      <h3>Where it all began…</h3>
+      <p>Every love story is beautiful, but ours is my favourite. Still remember the day we met for the first time. How you liked the way I touched you. 🥹🙈</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider">🌸 · 🌷 · 🌸</div>
+
+<!-- SEC 2 — lavender | reverse row: card RIGHT, hint LEFT → 👉🏻 -->
+<section class="color-section" data-bg="#e8d5f5" id="sec2" data-song="audio-song2" data-emojis="✈️🌍🗺️🌅🎒🌄😄💜">
+  <div class="photo-wrapper reverse">
+    <div class="flip-card" onclick="flipCard(this)">
+      <div class="flip-inner">
+        <div class="flip-front" data-caption="Happy adventures 🌍">
+          <!-- ▶ PHOTO 2 — replace with your Google Drive URL -->
+          <img src="https://lh3.googleusercontent.com/d/1s9jzIBN-yVR-DWNhxwov26uh_-WfGH0E" alt="Our photo 2"/>
+        </div>
+        <div class="flip-back">
+          <span class="back-emoji">💜</span>
+          <p class="back-msg">Adventures are better with you by my side. You make even the smallest moments feel like the greatest memories. I never want to stop exploring the world with you.</p>
+          <span class="back-sig">— your partner in crime 💜</span>
+        </div>
+      </div>
+    </div>
+    <span class="click-hint">
+      <span class="arr-desk">👉🏻</span>
+      <span class="arr-mob">👇🏻</span>
+      <span class="click-hint-label" style="color:#9c27b0">Click on us</span>
+    </span>
+    <div class="photo-caption">
+      <h3>Adventures with you</h3>
+      <p>Every trip, every road, every detour — they all lead back to you. You are my favourite destination. 🌍</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider">💫 · ⭐ · 💫</div>
+
+<!-- SEC 3 — peach | normal row → 👈🏻 -->
+<section class="color-section" data-bg="#ffe5cc" id="sec3" data-song="audio-song3" data-emojis="😂🤣😄😆🥹🧡🌻☀️">
+  <div class="photo-wrapper">
+    <div class="flip-card" onclick="flipCard(this)">
+      <div class="flip-inner">
+        <div class="flip-front" data-caption="Laughing together 😄">
+          <!-- ▶ PHOTO 3 — replace with your Google Drive URL -->
+          <img src="https://lh3.googleusercontent.com/d/1HHDAAfYAv7AtO7zZFjDyKy0KM5F2kIMB" alt="Our photo 3"/>
+        </div>
+        <div class="flip-back">
+          <span class="back-emoji">🧡</span>
+          <p class="back-msg">Even if we are miles apart, I know exactly how your laugh sounds. You laugh, I smile. Thank you for filling every room with joy. You are pure magic.</p>
+          <span class="back-sig">— hopelessly in love 🧡</span>
+        </div>
+      </div>
+    </div>
+    <span class="click-hint">
+      <span class="arr-desk">👈🏻</span>
+      <span class="arr-mob">👆🏻</span>
+      <span class="click-hint-label" style="color:#e65100">Click on us</span>
+    </span>
+    <div class="photo-caption">
+      <h3>Your laugh heals me</h3>
+      <p>Some moments don't need words. This one just needs us, and that's more than enough. 💖</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider">🌼 · 🌻 · 🌼</div>
+
+<!-- SEC 4 — mint | reverse row → 👉🏻 -->
+<section class="color-section" data-bg="#d4f5e9" id="sec4" data-song="audio-song4" data-emojis="🍃🌿☁️🌙🌊🕊️💚🫶">
+  <div class="photo-wrapper reverse">
+    <div class="flip-card" onclick="flipCard(this)">
+      <div class="flip-inner">
+        <div class="flip-front" data-caption="Quiet moments 🍃">
+          <!-- ▶ PHOTO 4 — replace with your Google Drive URL -->
+          <img src="https://lh3.googleusercontent.com/d/1MgBE_aXCb8u3ZmJ6yorldieY95us6EUQ" alt="Our photo 4"/>
+        </div>
+        <div class="flip-back">
+          <span class="back-emoji">🌿</span>
+          <p class="back-msg">In the quiet moments, when it's just the two of us, I feel the most at home. You are my calm in every storm, my peace in every chaos.</p>
+          <span class="back-sig">— forever grateful 💚</span>
+        </div>
+      </div>
+    </div>
+    <span class="click-hint">
+      <span class="arr-desk">👉🏻</span>
+      <span class="arr-mob">👇🏻</span>
+      <span class="click-hint-label" style="color:#2e7d32">Click on us</span>
+    </span>
+    <div class="photo-caption">
+      <h3>Peace & Perfect</h3>
+      <p>Not every beautiful thing needs a grand gesture. Sometimes it's just a quiet days and you. 👼</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider">💙 · 🫐 · 💙</div>
+
+<!-- SEC 5 — sky blue | normal row → 👈🏻 -->
+<section class="color-section" data-bg="#d0eeff" id="sec5" data-song="audio-song5" data-emojis="💍👑🥂💎🎂🎁🎊💙">
+  <div class="photo-wrapper">
+    <div class="flip-card" onclick="flipCard(this)">
+      <div class="flip-inner">
+        <div class="flip-front" data-caption="Always, All Ways 💘">
+          <!-- ▶ PHOTO 5 — replace with your Google Drive URL -->
+          <img src="https://lh3.googleusercontent.com/d/1DG29oZuklfKYzaTrAdxpFM7CvblIi1aK" alt="Our photo 5"/>
+        </div>
+        <div class="flip-back">
+          <span class="back-emoji">💙</span>
+          <p class="back-msg">I don't know how and when we ended up here, but since then, your day has become one of the most important days in my life. Happy Birthday, My Pillu.</p>
+          <span class="back-sig">— yours, today & always 💙</span>
+        </div>
+      </div>
+    </div>
+    <span class="click-hint">
+      <span class="arr-desk">👈🏻</span>
+      <span class="arr-mob">👆🏻</span>
+      <span class="click-hint-label" style="color:#0277bd">Click on us</span>
+    </span>
+    <div class="photo-caption">
+      <h3>You are my favourite human</h3>
+      <p>Here's to you — the most wonderful, radiant, extraordinary person I know. Happy Birthday, Shal. 🎂😘</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     VIDEO SECTION  (just before the letter)
+     ▶ Replace the src below with your Drive video URL when ready
+════════════════════════════════════════ -->
+<section id="video-section">
+  <h2>Us, in motion 🎬</h2>
+  <p class="vid-sub">Our favourite little moment, just for you 🎀</p>
+
+  <div class="vid-card">
+    <div class="vid-ratio" id="vidContainer">
+      <iframe
+        src="https://drive.google.com/file/d/1IhD7XgbtBoLKoYzVjjAdozOyUE1Eup69/preview"
+        allow="autoplay"
+        allowfullscreen
+        style="position:absolute;inset:0;width:100%;height:100%;border:none;">
+      </iframe>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     LETTER SECTION
+════════════════════════════════════════ -->
+<section id="letter-section">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;width:100%;">
+    <h2 style="font-family:'Sacramento',cursive;font-size:clamp(2.5rem,8vw,4.5rem);color:#b5006b;text-align:center;margin-bottom:.5rem;">
+      A letter from my heart 💌
+    </h2>
+
+    <div class="letter-scene">
+
+      <!-- LEFT pile -->
+      <div class="letter-sides left" id="sidesLeft">
+        <div class="side-photo-card" onclick="sideCardClick(this)">
+          <!-- ▶ SIDE LEFT 1 — replace with your Google Drive URL -->
+          <img src="https://lh3.googleusercontent.com/d/1mEHX-whBxfxMMU2ZaOyJ_GP4JBNULwa9" alt="Memory" style="object-position: center 40%"/>
+          <p class="side-caption">us 💕</p>
+        </div>
+        <div class="side-photo-card" onclick="sideCardClick(this)">
+          <!-- ▶ SIDE LEFT 2 — replace with your Google Drive URL -->
+          <img src="https://lh3.googleusercontent.com/d/1bmDwBwuxOpAor8V5zRkXHHhKwPN2zgiC" alt="Memory" style="object-position: center 20%"/>
+          <p class="side-caption">always 🌸</p>
+        </div>
+        <div class="side-photo-card" onclick="sideCardClick(this)">
+          <!-- ▶ SIDE LEFT 3 — replace with your Google Drive URL -->
+          <img src="https://lh3.googleusercontent.com/d/12L8-KjJvdiG6-nkrMEpn8pXD5TMd_dIl" alt="Memory"/>
+          <p class="side-caption">forever ✨</p>
+        </div>
+      </div>
+
+      <!-- CENTER envelope -->
+      <div class="letter-center">
+        <div class="letter-envelope" id="envelope" onclick="openLetter()">
+          <div class="ribbon-h"></div>
+          <div class="ribbon-v"></div>
+          <div class="ribbon-bow">🎀</div>
+          <div class="env-body">
+            <div class="env-flap"></div>
+            <div class="letter-content">
+              <!-- ▶ PHOTO 6 — replace with your Google Drive URL -->
+              <img class="letter-photo" src="https://lh3.googleusercontent.com/d/1IIp2yCexbft1Tolxisy99nQSuTUYQsby" alt="Our special photo"/>
+              <p class="letter-text">
+                My Love,<br><br>
+                On your birthday, I want you to know something simple but true — you make my world infinitely better just by being in it.
+                Somehow the universe decided we should find each other, and now look at us, from smiling with each other to exploring new places to watching each other do worst things possible and farting together, we have done everything. 
+                You are my sunshine on cloudy days, and my greatest adventure.<br><br>
+                "Tumse hi tumse, har baat, har baat hain, Jab tum ho saath"<br><br>
+                Here's to you, today and always. I love you more than words could ever say.<br><br>
+              </p>
+              <span class="letter-sign">With all my love,<br>Yours Chiu💕</span>
+            </div>
+          </div>
+        </div>
+        <p class="env-hint" id="envHint">💌 Click to open your letter</p>
+      </div>
+
+      <!-- RIGHT pile -->
+      <div class="letter-sides right" id="sidesRight">
+        <div class="side-photo-card" onclick="sideCardClick(this)">
+          <!-- ▶ SIDE RIGHT 1 — replace with your Google Drive URL -->
+          <img src="https://lh3.googleusercontent.com/d/1aF_KnkXXI2ZaHF1Nu4LANXS3Hl8YnhWg" alt="Memory" style="object-position: center 20%"/>
+          <p class="side-caption">together 💖</p>
+        </div>
+        <div class="side-photo-card" onclick="sideCardClick(this)">
+          <!-- ▶ SIDE RIGHT 2 — replace with your Google Drive URL -->
+          <img src="https://lh3.googleusercontent.com/d/1U5DGwdJIeexn_pTeAjlAg0nLvEXbfC9Z" alt="Memory" style="object-position: center 40%"/>
+          <p class="side-caption">smiles 😊</p>
+        </div>
+        <div class="side-photo-card" onclick="sideCardClick(this)">
+          <!-- ▶ SIDE RIGHT 3 — replace with your Google Drive URL -->
+          <img src="https://lh3.googleusercontent.com/d/1jgIdaWEOKjQFGkll6VZgn0vpZSGno78q" alt="Memory" style="object-position: center 10%"/>
+          <p class="side-caption">love 💗</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ════ FOOTER ════ -->
+<footer>
+  Made with 💕 just for you — Happy Birthday, Love 🎂✨
+</footer>
+
+
+<!-- ════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
+<script>
+  /* ─── 1. SCROLL LOCK ─── */
+  document.documentElement.classList.add('locked');
+  window.scrollTo(0,0); document.documentElement.scrollTop=0; document.body.scrollTop=0;
+
+  /* ─── 2. CONFETTI ─── */
+  const CC=['#f48fb1','#ce93d8','#80deea','#ffcc80','#ef9a9a','#fff176','#a5d6a7'];
+  (function(){
+    const s=document.getElementById('splash');
+    for(let i=0;i<65;i++){
+      const el=document.createElement('div'); el.classList.add('confetti-piece');
+      el.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*-20}%;
+        background:${CC[i%CC.length]};
+        width:${6+Math.random()*10}px;height:${6+Math.random()*10}px;
+        border-radius:${Math.random()>.5?'50%':'2px'};
+        animation-duration:${2.5+Math.random()*3}s;
+        animation-delay:${Math.random()*2}s;`;
+      s.appendChild(el);
+    }
+  })();
+
+  /* ═══════════════════════════════════════════════════════════
+     3. AUDIO ENGINE
+     ─────────────────────────────────────────────────────────
+     Three audio moments — only one plays at a time:
+       A. Party-popper "Yayy!" generated via Web Audio on button click
+       B. Cards song (audio-cards) — fades in when sec1 enters view,
+          fades out when the video section enters view
+       C. Letter song (audio-letter) — fades in when envelope is opened
+  ═══════════════════════════════════════════════════════════ */
+  const cardsAudio  = document.getElementById('audio-cards');
+  const letterAudio = document.getElementById('audio-letter');
+
+  /* Each audio track gets its OWN fade timer so they never cancel each other */
+  const fadeTimers = { cards: null, letter: null };
+
+  function timerKey(audio){
+    return audio === cardsAudio ? 'cards' : 'letter';
+  }
+
+  /* ── Stop ALL audio immediately ── */
+  function stopAll(){
+    clearInterval(fadeTimers.cards);
+    clearInterval(fadeTimers.letter);
+    popAudio.pause();    popAudio.currentTime    = 0;
+    cardsAudio.pause();  cardsAudio.currentTime  = 0;
+    letterAudio.pause(); letterAudio.currentTime = 0;
+  }
+
+  /* ── Smooth fade-in helper ── */
+  function fadeIn(audio, targetVol){
+    const key = timerKey(audio);
+    clearInterval(fadeTimers[key]);
+    audio.volume = 0;
+    audio.play().catch(()=>{});
+    fadeTimers[key] = setInterval(()=>{
+      if(audio.volume >= targetVol - 0.03){
+        audio.volume = targetVol;
+        clearInterval(fadeTimers[key]);
+      } else {
+        audio.volume = Math.min(targetVol, audio.volume + 0.03);
+      }
+    }, 80);
+  }
+
+  /* ── Smooth fade-out helper (calls cb when done) ── */
+  function fadeOut(audio, cb){
+    const key = timerKey(audio);
+    clearInterval(fadeTimers[key]);
+    if(audio.paused){ if(cb) cb(); return; }
+    fadeTimers[key] = setInterval(()=>{
+      if(audio.volume <= 0.03){
+        audio.volume = 0;
+        audio.pause();
+        audio.currentTime = 0;
+        clearInterval(fadeTimers[key]);
+        if(cb) cb();
+      } else {
+        audio.volume = Math.max(0, audio.volume - 0.03);
+      }
+    }, 80);
+  }
+
+  /* ── A. Party-popper "Yayy!" sound — played from your own file ── */
+  const popAudio = document.getElementById('audio-pop');
+  function playPartyPopper(){
+    try{
+      popAudio.currentTime = 0;
+      popAudio.volume = 0.8;
+      popAudio.play().catch(()=>{});
+    }catch(e){}
+  }
+
+  /* ── A. Full confetti burst across the page ── */
+  function triggerConfettiBurst(){
+    const colors = ['#f48fb1','#ce93d8','#ffcc80','#80deea','#ef9a9a','#fff176','#a5d6a7','#ff80ab'];
+    const cx = window.innerWidth  / 2;
+    const cy = window.innerHeight * 0.4;
+    for(let i = 0; i < 90; i++){
+      const el = document.createElement('div');
+      el.classList.add('confetti-burst');
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 200 + Math.random() * 400;
+      const bx    = Math.cos(angle) * speed;
+      const by    = Math.sin(angle) * speed - (Math.random() * 300);
+      const dur   = 0.9 + Math.random() * 0.8;
+      el.style.cssText = `
+        left:${cx + (Math.random()-0.5)*60}px;
+        top:${cy  + (Math.random()-0.5)*30}px;
+        width:${6+Math.random()*8}px;
+        height:${6+Math.random()*8}px;
+        background:${colors[i%colors.length]};
+        border-radius:${Math.random()>.4?'50%':'2px'};
+        --bx:${bx}px; --by:${by}px;
+        --br:${(Math.random()-0.5)*720}deg;
+        animation-duration:${dur}s;
+        animation-delay:${Math.random()*0.15}s;
+      `;
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(), (dur + 0.2) * 1000);
+    }
+  }
+
+  /* ── B. Cards song ── */
+  let cardsSongStarting = false; // prevents double-call during async .play()
+  function startCardsSong(){
+    if(!cardsAudio.paused) return;
+    if(cardsSongStarting) return;
+    if(!letterAudio.paused) return; // letter song is playing — don't interrupt it
+    cardsSongStarting = true;
+    cardsAudio.currentTime = 33;   // ← your custom start time in seconds
+    fadeIn(cardsAudio, 0.55);
+    showToast('🎵 Now playing…');
+    setTimeout(()=>{ cardsSongStarting = false; }, 300);
+  }
+
+  function stopCardsSong(then){
+    fadeOut(cardsAudio, then);
+  }
+
+  /* ── C. Letter song ── */
+  function playLetterSong(){
+    /* Don't restart if already playing at the right position */
+    if(!letterAudio.paused) return;
+    letterAudio.currentTime = 212;   // ← your custom start time in seconds
+    fadeIn(letterAudio, 0.5);
+    showToast('💌 A song just for this moment…');
+  }
+
+  function stopLetterSong(){
+    fadeOut(letterAudio);
+  }
+
+/*  cardsAudio.addEventListener('timeupdate', ()=>{
+  if(cardsAudio.currentTime >= 78){   // ← stops at 1 min 12 sec
+    stopCardsSong();
+  }
+}); */
+
+  /* ─── 4. TOAST ─── */
+  let toastTimer=null;
+  function showToast(msg){
+    const t=document.getElementById('music-toast'); document.getElementById('toast-text').textContent=msg;
+    t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),3200);
+  }
+
+  /* ─── 5. CLOSE SPLASH ─── */
+  function closeSplash(){
+    /* Party popper sound + confetti blast */
+    playPartyPopper();
+    triggerConfettiBurst();
+    /* Unlock scroll and dismiss splash */
+    document.documentElement.classList.remove('locked');
+    window.scrollTo({top:0,behavior:'instant'}); document.documentElement.scrollTop=0; document.body.scrollTop=0;
+    const s=document.getElementById('splash'); s.classList.add('hide'); setTimeout(()=>{if(s)s.remove();},800);
+  }
+
+  /* ─── 6. FLOATING HEARTS ─── */
+  (function(){
+    const c=document.getElementById('bg-hearts'),e=['💕','💗','💖','🌸','✨','💫','🌷'];
+    setInterval(()=>{
+      const h=document.createElement('div'); h.classList.add('floating-heart');
+      h.textContent=e[Math.floor(Math.random()*e.length)];
+      h.style.cssText=`left:${Math.random()*100}%;bottom:0;animation-duration:${7+Math.random()*5}s;animation-delay:0s;font-size:${.9+Math.random()*1.2}rem;`;
+      c.appendChild(h); setTimeout(()=>h.remove(),13000);
+    },1600);
+  })();
+
+  /* ─── 7. SPARKLE ON CLICK ─── */
+  document.addEventListener('click',e=>{
+    const sp=document.createElement('div'); sp.classList.add('sparkle');
+    sp.textContent=['✨','💫','🌸','💕','⭐'][Math.floor(Math.random()*5)];
+    sp.style.cssText=`left:${e.clientX-12}px;top:${e.clientY-12}px;`;
+    document.body.appendChild(sp); setTimeout(()=>sp.remove(),850);
+  });
+
+  /* ─── 8. FLIP CARD + emoji blast (no per-card song) ─── */
+  function emojiBlast(cardEl, emojiStr){
+    const rect = cardEl.getBoundingClientRect();
+    const cx   = rect.left + rect.width  / 2;
+    const cy   = rect.top  + rect.height / 2;
+    const emojis = [...emojiStr];
+    const count  = 14;
+    for(let i = 0; i < count; i++){
+      const el = document.createElement('span');
+      el.classList.add('emoji-blast');
+      const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.6;
+      const dist1 = 80  + Math.random() * 90;
+      const dist2 = 130 + Math.random() * 120;
+      const rot1  = (Math.random() - 0.5) * 60  + 'deg';
+      const rot2  = (Math.random() - 0.5) * 120 + 'deg';
+      el.style.cssText = `
+        left:${cx - 12}px; top:${cy - 12}px;
+        --dx:${Math.cos(angle)*dist1}px; --dy:${Math.sin(angle)*dist1-30}px;
+        --dx2:${Math.cos(angle)*dist2}px; --dy2:${Math.sin(angle)*dist2-60}px;
+        --rot:${rot1}; --rot2:${rot2};
+        animation-delay:${i*0.04}s; font-size:${1.2+Math.random()*0.8}rem;
+      `;
+      el.textContent = emojis[i % emojis.length];
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(), 1200);
+    }
+  }
+
+  function flipCard(card){
+    card.classList.toggle('flipped');
+    const hint = card.nextElementSibling;
+    if(hint && hint.classList.contains('click-hint'))
+      hint.style.opacity = card.classList.contains('flipped') ? '0' : '';
+    if(card.classList.contains('flipped')){
+      const sec    = card.closest('.color-section');
+      const emojis = sec && sec.dataset.emojis ? sec.dataset.emojis : '💕✨🌸💫';
+      emojiBlast(card, emojis);
+      /* Cards song keeps playing — no per-card song change */
+    }
+  }
+
+/* ─── 9. SCROLL REVEAL + BG COLOUR + AUDIO ZONES ─── */
+  const sections = document.querySelectorAll('.color-section');
+  const bgColors = ['#ffd6e7','#e8d5f5','#ffe5cc','#d4f5e9','#d0eeff'];
+
+  /* State flags for every audio zone */
+  let visibleCardCount  = 0;
+  let videoVisible      = false;
+  let letterSectionVisible = false; // true when #letter-section is on screen
+  let letterOpened      = false;    // true once envelope has been tapped
+
+  /* ── Cards song: play only when cards visible AND video not covering them ── */
+  function evaluateCardsSong(){
+    if(visibleCardCount > 0 && !videoVisible){
+      startCardsSong();
+    } else {
+      stopCardsSong();
+    }
+  }
+
+  /* ── Letter song: play only when letter section visible AND letter is open ── */
+  function evaluateLetterSong(){
+    if(letterSectionVisible && letterOpened){
+      playLetterSong();   // uses correct start time, no-op if already playing
+    } else {
+      stopLetterSong();   // fades out cleanly
+    }
+  }
+
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      const idx = [...sections].indexOf(entry.target);
+
+      if(entry.isIntersecting){
+        visibleCardCount++;
+      } else {
+        visibleCardCount = Math.max(0, visibleCardCount - 1);
+      }
+
+      if(entry.isIntersecting && idx >= 0){
+        document.body.style.background = bgColors[idx];
+      }
+
+      if(entry.isIntersecting){
+        const card    = entry.target.querySelector('.flip-card');
+        const caption = entry.target.querySelector('.photo-caption');
+        const hint    = entry.target.querySelector('.click-hint');
+        if(card && !card.classList.contains('visible')){
+          setTimeout(()=>{ card.classList.add('visible'); if(hint) hint.classList.add('show'); }, 150);
+        }
+        if(caption && !caption.classList.contains('visible')){
+          setTimeout(()=>caption.classList.add('visible'), 350);
+        }
+      }
+
+      evaluateCardsSong();
+    });
+  },{threshold:.25});
+  sections.forEach(s=>obs.observe(s));
+
+  /* Video section observer */
+  const videoSec = document.getElementById('video-section');
+  if(videoSec){
+    new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        videoVisible = entry.isIntersecting;
+        evaluateCardsSong();
+      });
+    },{threshold:.15}).observe(videoSec);
+  }
+
+  /* Letter section observer — starts/stops letter song based on visibility */
+  const letterSec = document.getElementById('letter-section');
+  if(letterSec){
+    new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        letterSectionVisible = entry.isIntersecting;
+        evaluateLetterSong();
+        /* Also stop cards song when letter section is visible (clean handoff) */
+        if(entry.isIntersecting) stopCardsSong();
+        else evaluateCardsSong(); // re-check cards if scrolling back up
+      });
+    },{threshold:.15}).observe(letterSec);
+  }
+
+  /* ─── 10. SIDE CARD HEART BURST ─── */
+  function burstHearts(el){
+    const rect=el.getBoundingClientRect(), cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+    const sym=['💕','💗','💖','🌸','✨','💫','💓','🌷'];
+    for(let i=0;i<8;i++){
+      const h=document.createElement('span'); h.classList.add('burst-heart');
+      const angle=(i/8)*Math.PI*2, dist=55+Math.random()*55;
+      h.style.cssText=`left:${cx-10}px;top:${cy-10}px;font-size:${.85+Math.random()*.65}rem;
+        --dx:${Math.cos(angle)*dist}px;--dy:${Math.sin(angle)*dist-25}px;animation-delay:${i*.05}s;`;
+      h.textContent=sym[i%sym.length]; document.body.appendChild(h); setTimeout(()=>h.remove(),1400);
+    }
+  }
+  function sideCardClick(card){
+    if(!document.getElementById('sidesLeft').classList.contains('revealed')) return;
+    burstHearts(card); card.classList.add('tapped'); setTimeout(()=>card.classList.remove('tapped'),520);
+  }
+
+  /* ─── 11. OPEN LETTER ─── */
+  function openLetter(){
+    const env=document.getElementById('envelope'); if(env.classList.contains('open')) return;
+    env.classList.add('open'); document.getElementById('envHint').style.opacity='0';
+    document.getElementById('sidesLeft').classList.add('revealed');
+    document.getElementById('sidesRight').classList.add('revealed');
+    /* Mark letter as opened, then let evaluateLetterSong decide whether to play
+       (it will only play if the letter section is also currently visible) */
+    letterOpened = true;
+    evaluateLetterSong();
+  }
+
+  /* ─── 13. VIDEO CUSTOM CONTROLS ─── */
+  const vcVid     = document.getElementById('our-video');
+  const vcPlay    = document.getElementById('vcPlayBtn');
+  const vcBigPlay = document.getElementById('vidBigPlay');
+  const vcSeek    = document.getElementById('vcSeek');
+  const vcTime    = document.getElementById('vcTime');
+  const vcVol     = document.getElementById('vcVolBtn');
+
+  function fmtTime(s){
+    const m=Math.floor(s/60); const sec=Math.floor(s%60);
+    return m+':'+(sec<10?'0':'')+sec;
+  }
+
+  vcVid.addEventListener('timeupdate',()=>{
+    if(!vcVid.duration) return;
+    const pct=(vcVid.currentTime/vcVid.duration)*100;
+    vcSeek.value=pct;
+    vcTime.textContent=fmtTime(vcVid.currentTime)+' / '+fmtTime(vcVid.duration);
+  });
+  vcVid.addEventListener('loadedmetadata',()=>{
+    vcSeek.max=100;
+    vcTime.textContent='0:00 / '+fmtTime(vcVid.duration);
+  });
+  vcVid.addEventListener('ended',()=>{
+    vcPlay.textContent='▶'; vcBigPlay.classList.remove('hidden');
+  });
+
+  function vcPlayPause(){
+    if(vcVid.paused){
+      vcVid.play().then(()=>{ vcPlay.textContent='⏸'; vcBigPlay.classList.add('hidden'); }).catch(()=>{});
+    } else {
+      vcVid.pause(); vcPlay.textContent='▶'; vcBigPlay.classList.remove('hidden');
+    }
+  }
+
+  function vcSeekTo(val){
+    if(vcVid.duration) vcVid.currentTime=(val/100)*vcVid.duration;
+  }
+
+  function vcToggleMute(){
+    vcVid.muted=!vcVid.muted;
+    vcVol.textContent=vcVid.muted?'🔇':'🔊';
+  }
+
+  function vcFullscreen(){
+    const el=document.getElementById('vidContainer');
+    if(document.fullscreenElement){
+      document.exitFullscreen();
+    } else if(el.requestFullscreen){
+      el.requestFullscreen();
+    } else if(el.webkitRequestFullscreen){
+      el.webkitRequestFullscreen();   /* Safari */
+    } else if(vcVid.webkitEnterFullscreen){
+      vcVid.webkitEnterFullscreen();  /* iOS Safari fallback */
+    }
+  }
+</script>
+</body>
+</html>
